@@ -97,20 +97,20 @@ def train_model(
     X = df[available_cols].fillna(-999).values
     y = df["isfraud"].values
 
-    X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=test_size, random_state=42, stratify=y,
+    row_indices = np.arange(len(X))
+    X_train, X_test, y_train, y_test, idx_train, idx_test = train_test_split(
+        X, y, row_indices, test_size=test_size, random_state=42, stratify=y,
     )
 
     # Compute email_risk from training labels only (avoids target leakage).
+    # idx_train/idx_test track which rows went where through the shuffle.
     email_risk_col_idx = available_cols.index("email_risk") if "email_risk" in available_cols else None
     if email_risk_col_idx is not None and "p_emaildomain" in df.columns:
-        train_indices = df.index[:len(y_train)]
         email_risk_map = (
-            df.loc[train_indices].groupby("p_emaildomain")["isfraud"].mean()
+            df.iloc[idx_train].groupby("p_emaildomain")["isfraud"].mean()
         )
-        all_risk = df["p_emaildomain"].map(email_risk_map).fillna(0.035).values
-        X_train[:, email_risk_col_idx] = all_risk[:len(y_train)]
-        X_test[:, email_risk_col_idx] = all_risk[len(y_train):]
+        X_train[:, email_risk_col_idx] = df["p_emaildomain"].iloc[idx_train].map(email_risk_map).fillna(0.035).values
+        X_test[:, email_risk_col_idx] = df["p_emaildomain"].iloc[idx_test].map(email_risk_map).fillna(0.035).values
 
     params = {
         "objective": "binary:logistic",
