@@ -1,26 +1,15 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Optional
 
-from pydantic import BaseModel, Field, field_validator
-
-
-class CardType(str, Enum):
-    CREDIT = "credit"
-    DEBIT = "debit"
-
-
-class ProductCode(str, Enum):
-    W = "W"
-    H = "H"
-    C = "C"
-    S = "S"
-    R = "R"
+from pydantic import BaseModel, Field
 
 
 class Transaction(BaseModel):
+    """A single financial transaction from the IEEE-CIS schema."""
+
     transaction_id: str = Field(..., description="Unique transaction identifier")
     transaction_dt: float = Field(..., description="Timedelta from reference datetime (seconds)")
     transaction_amt: float = Field(..., ge=0, description="Transaction amount in USD")
@@ -52,20 +41,15 @@ class Transaction(BaseModel):
     c13: Optional[float] = None
     c14: Optional[float] = None
 
-    @field_validator("transaction_amt")
-    @classmethod
-    def amount_must_be_positive(cls, v: float) -> float:
-        if v < 0:
-            raise ValueError("Transaction amount cannot be negative")
-        return v
-
 
 class FraudPrediction(BaseModel):
+    """Model output for a scored transaction."""
+
     transaction_id: str
     fraud_probability: float = Field(..., ge=0.0, le=1.0)
     is_fraud: bool
     model_version: str
-    scored_at: datetime = Field(default_factory=datetime.utcnow)
+    scored_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     latency_ms: float = Field(..., ge=0, description="Scoring latency in milliseconds")
 
 
@@ -78,7 +62,7 @@ class DriftSeverity(str, Enum):
 
 class DriftAlert(BaseModel):
     alert_id: str
-    detected_at: datetime = Field(default_factory=datetime.utcnow)
+    detected_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     feature_name: str
     drift_score: float = Field(..., ge=0.0)
     test_method: str = Field(..., description="PSI, KS, or chi-squared")
@@ -95,4 +79,4 @@ class ValidationResult(BaseModel):
     errors: list[str] = Field(default_factory=list)
     null_fields: list[str] = Field(default_factory=list)
     out_of_range_fields: list[str] = Field(default_factory=list)
-    validated_at: datetime = Field(default_factory=datetime.utcnow)
+    validated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

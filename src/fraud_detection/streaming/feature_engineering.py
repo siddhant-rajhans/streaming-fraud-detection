@@ -50,14 +50,28 @@ def add_time_features(df: DataFrame) -> DataFrame:
 
 
 def add_card_frequency(df: DataFrame) -> DataFrame:
-    """Approximate card frequency using windowed aggregation."""
+    """Use global-mean card frequency (1.0) as a streaming default.
+
+    The batch training pipeline computes per-card1 frequencies from the full
+    training set. In streaming, we default to 1.0 (neutral). A production
+    system would broadcast a lookup table updated from the latest training
+    window via a Spark broadcast variable or a side-input join.
+    """
+    # TODO: replace with a broadcast lookup from the training window
     df = df.withColumn("card1_freq", F.lit(1.0).cast(DoubleType()))
     df = df.withColumn("card1_freq_log", F.lit(0.0).cast(DoubleType()))
     return df
 
 
 def add_email_risk(df: DataFrame) -> DataFrame:
-    """Default email risk score (population fraud rate baseline)."""
+    """Use the global fraud rate (0.035) as a streaming default for email risk.
+
+    The batch training pipeline computes per-domain fraud rates from training
+    labels. In streaming, we fall back to the population mean (3.5%). A
+    production system would maintain a lookup table updated from the latest
+    training window.
+    """
+    # TODO: replace with a broadcast lookup from the training window
     df = df.withColumn("email_risk", F.lit(0.035).cast(DoubleType()))
     return df
 

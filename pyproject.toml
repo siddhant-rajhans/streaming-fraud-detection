@@ -1,6 +1,6 @@
 [build-system]
 requires = ["setuptools>=68.0", "wheel"]
-build-backend = "setuptools.backends._legacy:_Backend"
+build-backend = "setuptools.build_meta"
 
 [project]
 name = "streaming-fraud-detection"
@@ -9,6 +9,7 @@ description = "Real-time fraud scoring with XGBoost on Spark Structured Streamin
 readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
+authors = [{ name = "Siddhant Rajhans", email = "sidjha88@gmail.com" }]
 dependencies = [
     "pyspark>=3.5.0",
     "kafka-python>=2.0.2",

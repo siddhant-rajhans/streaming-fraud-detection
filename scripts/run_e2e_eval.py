@@ -1,5 +1,12 @@
 #!/usr/bin/env python3
-"""End-to-end evaluation: generate synthetic fraud data, train, score, measure drift."""
+"""End-to-end evaluation: generate synthetic fraud data, train, score, measure drift.
+
+Uses sklearn GradientBoostingClassifier for zero-dependency evaluation (no XGBoost,
+Kafka, or Spark required). The production training path uses XGBoost via
+fraud_detection.model.train; this script verifies the full ML pipeline logic
+(feature engineering, model quality, drift detection, schema validation) without
+infrastructure dependencies.
+"""
 from __future__ import annotations
 
 import json

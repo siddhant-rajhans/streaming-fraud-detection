@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import logging
 import time
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class FraudScorer:
-    """Loads a trained XGBoost model and scores individual transactions."""
+    """Loads a trained XGBoost model and scores individual transactions in real time."""
 
     def __init__(self, model_dir: Path = Path("models"), version: str = "latest"):
         import xgboost as xgb
@@ -61,6 +61,8 @@ class FraudScorer:
             "day_of_week": int((dt // 86400) % 7),
             "is_night": int((dt % 86400) / 3600 < 6 or (dt % 86400) / 3600 > 22),
             "is_weekend": int(int((dt // 86400) % 7) >= 5),
+            # Global-mean defaults for streaming inference; a production system would
+            # use a lookup table broadcast from the most recent training window.
             "card1_freq": 1.0,
             "card1_freq_log": 0.0,
             "email_risk": 0.035,
@@ -95,7 +97,7 @@ class FraudScorer:
             fraud_probability=proba,
             is_fraud=proba >= self._threshold,
             model_version=self.version,
-            scored_at=datetime.utcnow(),
+            scored_at=datetime.now(timezone.utc),
             latency_ms=latency_ms,
         )
 
@@ -121,7 +123,7 @@ class FraudScorer:
                 fraud_probability=float(p),
                 is_fraud=float(p) >= self._threshold,
                 model_version=self.version,
-                scored_at=datetime.utcnow(),
+                scored_at=datetime.now(timezone.utc),
                 latency_ms=per_txn_ms,
             )
             for txn, p in zip(transactions, probas)

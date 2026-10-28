@@ -45,8 +45,9 @@ def engineer_features(df: pd.DataFrame) -> pd.DataFrame:
     df["card1_freq"] = df["card1"].map(card_freq).fillna(1).astype(float)
     df["card1_freq_log"] = np.log1p(df["card1_freq"])
 
-    email_risk = df.groupby("p_emaildomain")["isfraud"].mean() if "isfraud" in df.columns else pd.Series(dtype=float)
-    df["email_risk"] = df["p_emaildomain"].map(email_risk).fillna(0.035)
+    # email_risk is populated later by _apply_email_risk() after the train/test
+    # split, to avoid leaking the target into training features.
+    df["email_risk"] = 0.035
 
     for cat in CATEGORICAL_FEATURES:
         if cat in df.columns:
@@ -99,6 +100,17 @@ def train_model(
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=test_size, random_state=42, stratify=y,
     )
+
+    # Compute email_risk from training labels only (avoids target leakage).
+    email_risk_col_idx = available_cols.index("email_risk") if "email_risk" in available_cols else None
+    if email_risk_col_idx is not None and "p_emaildomain" in df.columns:
+        train_indices = df.index[:len(y_train)]
+        email_risk_map = (
+            df.loc[train_indices].groupby("p_emaildomain")["isfraud"].mean()
+        )
+        all_risk = df["p_emaildomain"].map(email_risk_map).fillna(0.035).values
+        X_train[:, email_risk_col_idx] = all_risk[:len(y_train)]
+        X_test[:, email_risk_col_idx] = all_risk[len(y_train):]
 
     params = {
         "objective": "binary:logistic",

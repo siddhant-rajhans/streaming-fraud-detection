@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import logging
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any
 
 import numpy as np
@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class DriftDetector:
-    """Monitors feature and prediction drift using a sliding window approach."""
+    """Sliding-window PSI + KS drift detector over streaming feature distributions."""
 
     def __init__(
         self,
@@ -78,7 +78,7 @@ class DriftDetector:
                 severity = _classify_severity(psi_score, ks_pvalue)
                 alerts.append(DriftAlert(
                     alert_id=str(uuid.uuid4()),
-                    detected_at=datetime.utcnow(),
+                    detected_at=datetime.now(timezone.utc),
                     feature_name=col,
                     drift_score=float(psi_score),
                     test_method="PSI+KS",
@@ -125,7 +125,7 @@ class DriftDetector:
         if psi_score > self.psi_threshold or ks_pvalue < self.ks_threshold:
             return DriftAlert(
                 alert_id=str(uuid.uuid4()),
-                detected_at=datetime.utcnow(),
+                detected_at=datetime.now(timezone.utc),
                 feature_name=self.prediction_column,
                 drift_score=float(psi_score),
                 test_method="PSI+KS",

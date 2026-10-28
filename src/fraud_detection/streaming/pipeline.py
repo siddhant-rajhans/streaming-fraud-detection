@@ -48,13 +48,17 @@ OUTPUT_SCHEMA = StructType([
 ])
 
 
-def create_spark_session(app_name: str = "FraudDetection") -> SparkSession:
+def create_spark_session(
+    app_name: str = "FraudDetection",
+    checkpoint_dir: str = "/tmp/fraud-checkpoint",
+) -> SparkSession:
+    """Create a Spark session configured for streaming fraud scoring."""
     return (
         SparkSession.builder
         .appName(app_name)
         .config("spark.sql.shuffle.partitions", "8")
         .config("spark.streaming.backpressure.enabled", "true")
-        .config("spark.sql.streaming.checkpointLocation", "/tmp/fraud-checkpoint")
+        .config("spark.sql.streaming.checkpointLocation", checkpoint_dir)
         .getOrCreate()
     )
 
@@ -125,6 +129,7 @@ def build_scoring_pipeline(
     input_topic: str = "transactions",
     output_topic: str = "predictions",
     model_version: str = "v1",
+    checkpoint_dir: str = "/tmp/fraud-checkpoint",
 ) -> Any:
     """Build and return the streaming query for the fraud scoring pipeline."""
     model_path = str(model_dir / "fraud_model.json")
@@ -170,7 +175,7 @@ def build_scoring_pipeline(
         .format("kafka")
         .option("kafka.bootstrap.servers", bootstrap_servers)
         .option("topic", output_topic)
-        .option("checkpointLocation", f"/tmp/fraud-checkpoint/{output_topic}")
+        .option("checkpointLocation", f"{checkpoint_dir}/{output_topic}")
         .outputMode("append")
         .trigger(processingTime="1 second")
         .start()
@@ -185,11 +190,13 @@ def run_pipeline(
     bootstrap_servers: str = "localhost:9092",
     input_topic: str = "transactions",
     output_topic: str = "predictions",
+    checkpoint_dir: str = "/tmp/fraud-checkpoint",
 ) -> None:
     """Start the streaming pipeline and block until termination."""
-    spark = create_spark_session()
+    spark = create_spark_session(checkpoint_dir=checkpoint_dir)
     query = build_scoring_pipeline(
         spark, model_dir, bootstrap_servers, input_topic, output_topic,
+        checkpoint_dir=checkpoint_dir,
     )
     try:
         query.awaitTermination()

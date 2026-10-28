@@ -1,3 +1,7 @@
+# Intended production configuration for the streaming fraud scoring pipeline.
+# pipeline.py reads checkpoint_dir and model settings from its function
+# parameters; this file documents the target deployment values.
+
 kafka:
   bootstrap_servers: "localhost:19092"
   input_topic: "transactions"

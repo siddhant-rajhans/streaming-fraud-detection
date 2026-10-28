@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import logging
 import shutil
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 class RetrainTrigger:
-    """Orchestrates model retraining when drift is detected."""
+    """Orchestrates model retraining when drift exceeds severity thresholds."""
 
     def __init__(
         self,
@@ -78,7 +78,7 @@ class RetrainTrigger:
             return None
 
         self.archive_dir.mkdir(parents=True, exist_ok=True)
-        ts = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
+        ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
         archive_path = self.archive_dir / f"fraud_model_{ts}.json"
         shutil.copy2(model_path, archive_path)
 
@@ -120,7 +120,7 @@ class RetrainTrigger:
                 accepted = False
 
         result = {
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.now(timezone.utc).isoformat(),
             "new_metrics": new_metrics,
             "previous_metrics": current_metrics,
             "archived_to": str(archived) if archived else None,
