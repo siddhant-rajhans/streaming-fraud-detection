@@ -1,0 +1,41 @@
+kafka:
+  bootstrap_servers: "localhost:19092"
+  input_topic: "transactions"
+  output_topic: "predictions"
+  consumer_group: "fraud-scoring"
+
+spark:
+  app_name: "FraudDetection"
+  master: "spark://spark-master:7077"
+  shuffle_partitions: 8
+  trigger_interval: "1 second"
+  checkpoint_dir: "/tmp/fraud-checkpoint"
+
+model:
+  dir: "models"
+  version: "v1"
+  threshold: 0.5
+
+monitoring:
+  drift:
+    window_size: 10000
+    psi_threshold: 0.15
+    ks_threshold: 0.05
+    check_interval_minutes: 30
+
+  validation:
+    max_null_rate: 0.10
+    max_error_rate: 0.05
+
+  retrain:
+    min_auc_improvement: 0.005
+    min_records: 50000
+    archive_dir: "models/archive"
+
+replay:
+  speed: 1000.0
+  max_records: null
+
+logging:
+  level: "INFO"
+  format: "%(asctime)s [%(name)s] %(levelname)s: %(message)s"
