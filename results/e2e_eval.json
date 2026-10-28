@@ -1,0 +1,35 @@
+{
+  "dataset": {
+    "n_samples": 50000,
+    "fraud_rate": 0.035
+  },
+  "model_metrics": {
+    "auc": 0.9697779422649889,
+    "f1": 0.6348684210526315,
+    "precision": 0.748062015503876,
+    "recall": 0.5514285714285714,
+    "best_threshold": 0.3464195331230468
+  },
+  "throughput": {
+    "batch_size": 1000,
+    "n_batches": 10,
+    "p50_batch_ms": 5.550266010686755,
+    "p95_batch_ms": 5.727552785538137,
+    "p50_per_txn_ms": 0.005550266010686755,
+    "p95_per_txn_ms": 0.005727552785538137,
+    "throughput_txn_per_sec": 178840.63632307714
+  },
+  "drift_detection": {
+    "features_checked": 20,
+    "features_drifted": 2,
+    "drifted_names": [
+      "transaction_amt",
+      "hour"
+    ],
+    "detection_rate": 0.1,
+    "amt_ks": 0.9858,
+    "amt_pval": 0.0,
+    "hour_ks": 0.9178,
+    "hour_pval": 0.0
+  }
+}

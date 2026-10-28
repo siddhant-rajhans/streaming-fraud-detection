@@ -1,6 +1,6 @@
 # Streaming Fraud Detection with Drift Monitoring
 
-Real-time fraud scoring pipeline that replays the IEEE-CIS fraud dataset as a live stream, scores each transaction with XGBoost at 4ms p95 latency, and monitors for feature drift with automatic retraining.
+Real-time fraud scoring pipeline that replays transaction data as a live stream, scores each transaction with a gradient boosting model, and monitors for feature drift with automatic retraining.
 
 ## Architecture
 
@@ -34,16 +34,29 @@ graph LR
     end
 ```
 
-## Performance
+## Measured Results
 
-| Metric | Value |
-|--------|-------|
-| Throughput | 12K transactions/min |
-| Scoring latency (p50) | 1.8 ms |
-| Scoring latency (p95) | 4 ms |
-| Model AUC (held-out) | 0.945 |
-| Feature drift detection | PSI + KS test on sliding 10K window |
-| Auto-retrain trigger | Critical/high drift in any feature, or 5+ medium alerts |
+Evaluated end-to-end on 50,000 synthetic transactions (3.5% fraud rate), trained with GradientBoosting (200 trees, depth 6):
+
+| Metric | Measured Value |
+|--------|---------------|
+| Model AUC (held-out test set) | **0.9698** |
+| F1 score (optimized threshold) | 0.635 |
+| Precision | 0.748 |
+| Recall | 0.551 |
+| Batch scoring throughput | 178,841 txns/sec |
+| Per-transaction p95 latency | 0.006 ms |
+| Drift detection (injected shift) | 2/2 target features caught (KS p < 1e-300) |
+| Schema validation | Catches negative amounts, missing fields, invalid codes |
+
+> These numbers are from `scripts/run_e2e_eval.py` on synthetic data. Production runs on the IEEE-CIS dataset with XGBoost and Spark Structured Streaming; the pipeline architecture (Kafka ingest, Spark scoring, Evidently monitoring, Airflow retraining) requires the Docker Compose infrastructure below.
+
+### Feature drift detection
+
+| Feature | KS Statistic | p-value | Detected? |
+|---------|-------------|---------|-----------|
+| `transaction_amt` (3x shift + 500) | 0.9858 | 0.00e+00 | Yes |
+| `hour` (shifted to 22-24h) | 0.9178 | 0.00e+00 | Yes |
 
 ## Tech Stack
 
