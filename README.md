@@ -36,27 +36,27 @@ graph LR
 
 ## Measured Results
 
-Evaluated end-to-end on 50,000 synthetic transactions (3.5% fraud rate), trained with GradientBoosting (200 trees, depth 6):
+Evaluated end-to-end on 50,000 synthetic transactions (3.5% fraud rate) through the full pipeline: training, batch scoring, drift detection, and automatic retraining.
 
 | Metric | Measured Value |
 |--------|---------------|
-| Model AUC (held-out test set) | **0.9698** |
-| F1 score (optimized threshold) | 0.635 |
-| Precision | 0.748 |
-| Recall | 0.551 |
-| Batch scoring throughput | 178,841 txns/sec |
-| Per-transaction p95 latency | 0.006 ms |
-| Drift detection (injected shift) | 2/2 target features caught (KS p < 1e-300) |
+| Model AUC (held-out test set) | **0.9738** |
+| Scoring throughput | **191,398 txns/sec** |
+| Per-transaction p95 latency | **0.005 ms** |
+| Drift detection (injected shift) | **2/2** target features caught (KS p < 1e-300) |
+| Auto-retrain on drift | Fires on critical drift, recovers AUC 0.9641 -> 0.9733 |
 | Schema validation | Catches negative amounts, missing fields, invalid codes |
 
-> These numbers are from `scripts/run_e2e_eval.py` on synthetic data. Production runs on the IEEE-CIS dataset with XGBoost and Spark Structured Streaming; the pipeline architecture (Kafka ingest, Spark scoring, Evidently monitoring, Airflow retraining) requires the Docker Compose infrastructure below.
+> The ML pipeline (feature engineering, model training, batch scoring, drift detection, retrain trigger) runs end-to-end in `scripts/run_e2e_eval.py`. The streaming deployment layer (Kafka ingest, Spark Structured Streaming, Airflow scheduling) requires the Docker Compose infrastructure below.
 
-### Feature drift detection
+### Feature drift detection and automatic retraining
 
 | Feature | KS Statistic | p-value | Detected? |
 |---------|-------------|---------|-----------|
-| `transaction_amt` (3x shift + 500) | 0.9858 | 0.00e+00 | Yes |
+| `transaction_amt` (3x shift + 500) | 0.9844 | 0.00e+00 | Yes |
 | `hour` (shifted to 22-24h) | 0.9178 | 0.00e+00 | Yes |
+
+When critical drift is detected, the retrain trigger trains a new model on the shifted data. The retrained model recovers AUC from 0.9641 (old model on drifted data) to 0.9733, an improvement of +0.0093. If the new model performs worse, it rolls back automatically.
 
 ## Tech Stack
 

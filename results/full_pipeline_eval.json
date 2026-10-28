@@ -1,0 +1,19 @@
+{
+  "dataset": {
+    "n_samples": 50000,
+    "fraud_rate": 0.035
+  },
+  "baseline_auc": 0.9738069578090304,
+  "throughput_txns_per_sec": 191398.04623486515,
+  "p95_per_txn_ms": 0.0054143517510965465,
+  "drift_detection": {
+    "injected_features": 2,
+    "detected": 2
+  },
+  "retrain": {
+    "triggered": true,
+    "old_model_auc_on_drifted": 0.9640886750555144,
+    "retrained_auc_on_drifted": 0.9733435973353072,
+    "improvement": 0.009254922279792743
+  }
+}
