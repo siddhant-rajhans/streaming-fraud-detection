@@ -8,7 +8,6 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-import xgboost as xgb
 
 from fraud_detection.schemas import FraudPrediction
 
@@ -19,6 +18,8 @@ class FraudScorer:
     """Loads a trained XGBoost model and scores individual transactions."""
 
     def __init__(self, model_dir: Path = Path("models"), version: str = "latest"):
+        import xgboost as xgb
+
         self.model_dir = Path(model_dir)
         self.version = version
         self._model: xgb.Booster | None = None
@@ -32,6 +33,8 @@ class FraudScorer:
 
         if not model_path.exists():
             raise FileNotFoundError(f"Model not found at {model_path}")
+
+        import xgboost as xgb
 
         self._model = xgb.Booster()
         self._model.load_model(str(model_path))
@@ -80,6 +83,8 @@ class FraudScorer:
         start = time.perf_counter()
 
         features = self.extract_features(txn)
+        import xgboost as xgb
+
         dmat = xgb.DMatrix(features.reshape(1, -1), feature_names=self._feature_columns)
         proba = float(self._model.predict(dmat)[0])
 
@@ -97,6 +102,8 @@ class FraudScorer:
     def score_batch(self, transactions: list[dict[str, Any]]) -> list[FraudPrediction]:
         """Score a batch of transactions."""
         start = time.perf_counter()
+
+        import xgboost as xgb
 
         feature_matrix = np.array(
             [self.extract_features(txn) for txn in transactions],

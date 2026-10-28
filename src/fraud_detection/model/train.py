@@ -6,7 +6,6 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-import xgboost as xgb
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score, precision_recall_curve, f1_score
 
@@ -114,6 +113,8 @@ def train_model(
     }
     if xgb_params:
         params.update(xgb_params)
+
+    import xgboost as xgb
 
     dtrain = xgb.DMatrix(X_train, label=y_train, feature_names=available_cols)
     dtest = xgb.DMatrix(X_test, label=y_test, feature_names=available_cols)

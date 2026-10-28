@@ -7,8 +7,6 @@ from typing import Any
 
 import numpy as np
 import pandas as pd
-from evidently.metric_preset import DataDriftPreset
-from evidently.report import Report
 from scipy import stats
 
 from fraud_detection.schemas import DriftAlert, DriftSeverity
@@ -144,8 +142,11 @@ class DriftDetector:
             )
         return None
 
-    def generate_evidently_report(self, output_path: str | None = None) -> Report:
+    def generate_evidently_report(self, output_path: str | None = None):
         """Generate a full Evidently data drift report."""
+        from evidently.metric_preset import DataDriftPreset
+        from evidently.report import Report
+
         current = self.current_window
         cols = [c for c in self.feature_columns if c in current.columns and c in self.reference.columns]
 

@@ -5,7 +5,6 @@ import logging
 from pathlib import Path
 from typing import Any, Iterator
 
-import xgboost as xgb
 import numpy as np
 from pyspark.sql import SparkSession, DataFrame
 from pyspark.sql import functions as F
@@ -94,6 +93,8 @@ def _score_batch_udf(model_path: str, feature_columns: list[str], threshold: flo
 
     @pandas_udf(DoubleType())
     def predict_fraud(iterator: Iterator[pd.DataFrame]) -> Iterator[pd.Series]:
+        import xgboost as xgb
+
         booster = xgb.Booster()
         booster.load_model(model_path)
 

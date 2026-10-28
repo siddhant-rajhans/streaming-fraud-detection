@@ -58,10 +58,10 @@ class TestDriftDetector:
         detector = DriftDetector(
             reference_data=reference_data,
             feature_columns=["transaction_amt", "card1"],
-            window_size=500,
+            window_size=2000,
         )
-        rng = np.random.RandomState(99)
-        for _ in range(600):
+        rng = np.random.RandomState(42)
+        for _ in range(2500):
             detector.add_record({
                 "transaction_amt": float(rng.exponential(100)),
                 "card1": float(rng.randint(1000, 20000)),

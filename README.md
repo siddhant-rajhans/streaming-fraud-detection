@@ -198,8 +198,10 @@ streaming-fraud-detection/
 ## Testing
 
 ```bash
-pytest tests/ -v
+PYTHONPATH=src:. pytest tests/ -v
 ```
+
+43 tests pass covering schemas, validation, prediction feature extraction, and drift detection (PSI, KS, severity classification). Tests for XGBoost model loading and Evidently report generation require those packages installed; the core pipeline logic is tested without them via lazy imports.
 
 ## License
 

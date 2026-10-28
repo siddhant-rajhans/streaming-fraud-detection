@@ -13,11 +13,11 @@
   "throughput": {
     "batch_size": 1000,
     "n_batches": 10,
-    "p50_batch_ms": 5.550266010686755,
-    "p95_batch_ms": 5.727552785538137,
-    "p50_per_txn_ms": 0.005550266010686755,
-    "p95_per_txn_ms": 0.005727552785538137,
-    "throughput_txn_per_sec": 178840.63632307714
+    "p50_batch_ms": 5.530848167836666,
+    "p95_batch_ms": 5.704471911303699,
+    "p50_per_txn_ms": 0.005530848167836666,
+    "p95_per_txn_ms": 0.005704471911303699,
+    "throughput_txn_per_sec": 179996.51503977258
   },
   "drift_detection": {
     "features_checked": 20,
